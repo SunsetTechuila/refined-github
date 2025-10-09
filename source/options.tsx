@@ -8,6 +8,7 @@ import delegate, {type DelegateEvent} from 'delegate-it';
 import {isChrome, isFirefox} from 'webext-detect';
 import type {SyncedForm} from 'webext-options-sync-per-domain';
 import 'webext-bugs/target-blank';
+import {messageRuntime} from 'webext-msg';
 
 import clearCacheHandler from './helpers/clear-cache-handler.js';
 import {brokenFeatures, styleHotfixes} from './helpers/hotfix.js';
@@ -106,6 +107,17 @@ async function fetchHotfixes(event: MouseEvent): Promise<void> {
 	}
 }
 
+async function checkForUpdate(): Promise<void> {
+	const updateVersionValue = await messageRuntime<string | void>({getUpdateVersion: true});
+	const currentVersion = version;
+
+	if (updateVersionValue) {
+		$('#update-version').textContent = updateVersionValue;
+		$('#current-version').textContent = currentVersion;
+		$('#update-banner').hidden = false;
+	}
+}
+
 async function generateDom(): Promise<void> {
 	// Generate list
 	await initFeatureList();
@@ -175,11 +187,15 @@ function addEventListeners(): void {
 
 	// Handle "Fetch hotfixes" button
 	$('#fetch-hotfixes').addEventListener('click', fetchHotfixes);
+
+	// Handle "Reload extension" button
+	$('#reload-extension').addEventListener('click', () => messageRuntime({reloadExtension: true}));
 }
 
 async function init(): Promise<void> {
 	await generateDom();
 	addEventListeners();
+	checkForUpdate();
 }
 
 void init();

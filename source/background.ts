@@ -17,6 +17,8 @@ import addReloadWithoutContentScripts from './options/reload-without.js';
 const {version} = chrome.runtime.getManifest();
 
 const welcomeShown = new StorageItem('welcomed', {defaultValue: false});
+const updateVersion = new StorageItem('update-version', {defaultValue: ''});
+void updateVersion.set('');
 
 // GHE support
 if (!isSafari()) {
@@ -52,6 +54,24 @@ handleMessages({
 	},
 	async getStyleHotfixes() {
 		return styleHotfixes.get(version);
+	},
+	async getUpdateVersion(): Promise<string | void> {
+		if (isDevelopmentVersion()) {
+			updateVersion.set('999.999.999');
+			return '999.999.999';
+		}
+		const updateVersionValue = await updateVersion.get();
+		if (updateVersionValue) {
+			return updateVersionValue;
+		}
+		const {status, version} = await chrome.runtime.requestUpdateCheck();
+		if (status === 'update_available') {
+			updateVersion.set(version);
+			return version;
+		}
+	},
+	async reloadExtension() {
+		chrome.runtime.reload();
 	},
 });
 
