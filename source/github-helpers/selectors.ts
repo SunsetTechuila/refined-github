@@ -11,8 +11,17 @@ export const repoUnderlineNavUl_ = [
 	[1, 'https://github.com/refined-github/refined-github/releases'],
 ] satisfies UrlMatch[];
 
+export const reactIssueBody = '.react-issue-body'; // First issue comment
+export const reactIssueBody_ = [
+	[1, 'https://github.com/refined-github/sandbox/issues/117'],
+] satisfies UrlMatch[];
+export const reactIssueComment = '.react-issue-comment'; // Issue comments
+export const reactIssueComment_ = [
+	[3, 'https://github.com/refined-github/sandbox/issues/117'],
+] satisfies UrlMatch[];
+
 export const standaloneGistLinkInMarkdown = css`
-	:is(.js-comment-body, .react-issue-comment, .react-issue-body) p a:only-child:is(
+	:is(.js-comment-body, ${reactIssueComment}, ${reactIssueBody}) p a:only-child:is(
 		[href^="https://gist.github.com/"],
 		[href^="${location.origin}/gist/"]
 	)
@@ -204,9 +213,9 @@ export const botLinksPrSelectors = [
 const authorLinks = [
 	'.js-discussion a.author',
 	'.inline-comments a.author',
-	'.react-issue-comment a[data-testid="avatar-link"]',
+	`${reactIssueComment} a[data-testid="avatar-link"]`,
 	'[data-testid="comment-header"] a[data-testid="avatar-link"]', // React commit view
-	'.react-issue-body a[data-testid="issue-body-header-author"]', // React issue view first comment
+	`${reactIssueBody} a[data-testid="issue-body-header-author"]`, // React issue view first comment
 ];
 
 const authorLinksException = [

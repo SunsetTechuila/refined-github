@@ -12,6 +12,7 @@ import {wrap} from '../helpers/dom-utils.js';
 import features from '../feature-manager.js';
 import {getLoggedInUser, isArchivedRepoAsync} from '../github-helpers/index.js';
 import observe from '../helpers/selector-observer.js';
+import {reactIssueBody} from '../github-helpers/selectors';
 
 const fieldSelector = [
 	'textarea#new_comment_field',
@@ -88,7 +89,7 @@ function add(avatar: HTMLElement): void {
 		// Make sure the comment isn't hidden
 		const contentItem = avatar.parentElement!.querySelector([
 			'[data-testid="comment-header"] + div',
-			'.react-issue-body', // First comment in React issues view
+			reactIssueBody,
 		])!;
 
 		if (!contentItem) {

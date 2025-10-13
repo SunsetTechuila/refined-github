@@ -2,13 +2,14 @@ import onetime from '../helpers/onetime.js';
 import features from '../feature-manager.js';
 import {linkifiedURLClass, shortenLink} from '../github-helpers/dom-formatters.js';
 import observe from '../helpers/selector-observer.js';
+import {reactIssueComment, reactIssueBody} from '../github-helpers/selectors.js';
 
 /* This feature is currently so broad that it's not de-inited via signal, it's just run once for all pageloads #5889 */
 function initOnce(): void {
 	observe([
 		`.comment-body a[href]:not(.${linkifiedURLClass})`,
-		`.react-issue-comment .markdown-body a[href]:not(.${linkifiedURLClass})`, // Issue comments
-		`.react-issue-body .markdown-body a[href]:not(.${linkifiedURLClass})`, // First issue comment
+		`${reactIssueComment} .markdown-body a[href]:not(.${linkifiedURLClass})`,
+		`${reactIssueBody} .markdown-body a[href]:not(.${linkifiedURLClass})`,
 		`[data-testid="review-thread"] .markdown-body a[href]:not(.${linkifiedURLClass})`, // React commit view
 	], shortenLink);
 }

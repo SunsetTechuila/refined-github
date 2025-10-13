@@ -14,6 +14,7 @@ import observe from '../helpers/selector-observer.js';
 import GetCommitAtDate from './comments-time-machine-links.gql';
 import {expectToken} from '../github-helpers/github-token.js';
 import getDefaultBranch from '../github-helpers/get-default-branch.js';
+import {reactIssueBody, reactIssueComment} from '../github-helpers/selectors.js';
 
 async function updateURLtoDatedSha(url: GitHubFileURL, date: string): Promise<void> {
 	const {repository} = await api.v4(GetCommitAtDate, {variables: {date, branch: url.branch}});
@@ -106,6 +107,8 @@ function addDropdownLink(menu: HTMLElement, timestamp: string): void {
 	);
 }
 
+const reactCommitView = '[data-testid="review-thread"] > div';
+
 async function init(signal: AbortSignal): Promise<void> {
 	await expectToken();
 
@@ -127,12 +130,18 @@ async function init(signal: AbortSignal): Promise<void> {
 	}, {signal});
 
 	observe([
-		'div.react-issue-comment', // Comments
-		'div.react-issue-body', // First comment
-		'[data-testid="review-thread"] > div',
-	], comment => {
-		const timestamp = $('relative-time', comment).attributes.datetime.value;
-		addInlineLinks(comment, timestamp);
+		`${reactIssueComment} relative-time[datetime]`,
+		`${reactIssueBody} relative-time[datetime]`,
+		`${reactCommitView} relative-time[datetime]`,
+	], relativeTime => {
+		const comment = relativeTime.closest([
+			reactIssueComment,
+			reactIssueBody,
+			reactCommitView,
+		]);
+		if (comment) {
+			addInlineLinks(comment, relativeTime.attributes.datetime.value);
+		}
 	}, {signal});
 }
 

@@ -1,3 +1,5 @@
+import {reactIssueBody, reactIssueComment} from './selectors';
+
 /**
 Given any element in a comment, returns the comment’s author
 
@@ -22,8 +24,8 @@ export default function getCommentAuthor(anyElementInsideComment: Element): stri
 		.closest([
 			'.TimelineItem', // PR comments (and pre-issue redesign issue comments)
 			'.review-comment', // PR review comments
-			'.react-issue-body', // First issue comment
-			'.react-issue-comment', // Issue comments
+			reactIssueBody,
+			reactIssueComment,
 			'[data-testid="comment-header"]', // Commit comments
 		])!
 		.querySelector([
