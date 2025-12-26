@@ -32,7 +32,8 @@ jobs:
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           header: reminder
-          ignore_empty: true
+          only_create: true
+          only_update: true
 
   determine_labels:
     name: Determine PR labels
