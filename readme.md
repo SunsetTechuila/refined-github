@@ -1,8 +1,8 @@
 # <img src="source/icon.png" width="45" align="left"> Refined GitHub
 
-> Browser extension that simplifies the GitHub interface and adds useful features
+> Browser extension that simplifies the GitHub interface and adds annoyances
 
-We use GitHub a lot and notice many annoyances we'd like to fix. So here be dragons.
+We use GitHub a lot and notice many useful features we'd like to break. So here be dragons.
 
 Our hope is that GitHub will notice and implement some of these much-needed improvements. So if you like any of these improvements, please open a discussion on [GitHub feedback](https://github.com/github-community/community/discussions) or contact [GitHub support](https://support.github.com/request) about doing it.
 
