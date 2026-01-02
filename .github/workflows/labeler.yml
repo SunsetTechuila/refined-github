@@ -9,7 +9,7 @@ on:
 
 jobs:
   check_labels:
-    name: Check if PR has labels
+    name: Check if Pull Request has labels
     outputs:
       has_labels: ${{ steps.has_labels.outputs.result }}
     runs-on: ubuntu-latest
