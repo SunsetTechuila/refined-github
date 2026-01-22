@@ -1,5 +1,6 @@
 import React from 'dom-chef';
-import {lastElement} from 'select-dom';
+import {elementExists, lastElement} from 'select-dom';
+import {$} from 'select-dom/strict.js';
 import * as pageDetect from 'github-url-detection';
 
 import {wrap} from '../helpers/dom-utils.js';
@@ -11,10 +12,22 @@ export const statusBadge = [
 	'[class^="StateLabel"]',
 ] as const;
 
-export function getLastCloseEvent(): HTMLElement | undefined {
+export async function getLastCloseEvent(): Promise<HTMLElement | undefined> {
+	if (elementExists('#issue-timeline > *:last-child [class="prc-Spinner-Box"]')) {
+		return new Promise(resolve => {
+			const observer = new MutationObserver(async ([{target}]) => {
+				if (target instanceof Element && !elementExists('[class="prc-Spinner-Box"]', target)) {
+					observer.disconnect();
+					resolve(await getLastCloseEvent());
+				}
+			});
+			observer.observe($('#issue-timeline > *:last-child'), {childList: true});
+		});
+	}
+
 	return lastElement([
 		// TODO: Move to selectors.ts
-		// Old view: Drop in April 2025
+		// Old view
 		`.TimelineItem-badge :is(
 			.octicon-issue-closed,
 			.octicon-git-merge,
@@ -32,16 +45,21 @@ export function getLastCloseEvent(): HTMLElement | undefined {
 	])?.querySelector('relative-time') ?? undefined;
 }
 
-function addToConversation(discussionHeader: HTMLElement): void {
+async function addToConversation(discussionHeader: HTMLElement): Promise<void> {
 	// Avoid native `title` by disabling pointer events, we have our own `aria-label`. We can't drop the `title` attribute because some features depend on it.
 	discussionHeader.style.pointerEvents = 'none';
+
+	const lastCloseEvent = await getLastCloseEvent();
+	if (!lastCloseEvent) {
+		throw new Error('Could not find last close event');
+	}
 
 	wrap(
 		discussionHeader,
 		<a
 			aria-label="Scroll to most recent close event"
 			className="tooltipped tooltipped-e"
-			href={getLastCloseEvent()!.closest('a')!.href}
+			href={lastCloseEvent.closest('a')!.href}
 		/>,
 	);
 }

@@ -17,13 +17,19 @@ import {newCommentField} from '../github-helpers/selectors.js';
 import {userIsModerator} from '../github-helpers/get-user-permission.js';
 import looseParseInt from '../helpers/loose-parse-int.js';
 
-/** Returns milliseconds passed since `date` */
-function timeAgo(date: Date): number {
-	return Date.now() - date.getTime();
-}
+// TODO: REFACTOR!!!
 
-function getCloseDate(): Date {
-	const datetime = getLastCloseEvent()?.getAttribute('datetime');
+export async function getCloseDate(): Promise<Date | undefined> {
+	if (pageDetect.isOpenConversation()) {
+		return;
+	}
+
+	const lastCloseEvent = await getLastCloseEvent();
+	if (!lastCloseEvent) {
+		throw new Error('Could not find last close event');
+	}
+
+	const datetime = lastCloseEvent.getAttribute('datetime');
 	if (!datetime) {
 		throw new TypeError('Datetime attribute missing from close event');
 	}
@@ -31,31 +37,30 @@ function getCloseDate(): Date {
 	return new Date(datetime);
 }
 
+/** Returns milliseconds passed since `date` */
+function timeAgo(date: Date): number {
+	return Date.now() - date.getTime();
+}
+
+const threeMonths = toMilliseconds({days: 90});
+
+export function wasClosedLongAgo(closeDate: Date): boolean {
+	return timeAgo(closeDate) > threeMonths;
+}
+
 function isPopular(): boolean {
 	return (
 		countElements('[data-testid="comment-header"]') > 30
 		|| looseParseInt($optional('[aria-label*="other participants"]')?.ariaLabel) > 30
 		|| elementExists('[data-testid="issue-timeline-load-more-count-front"]')
-		// TODO: Drop in April 2025; old conversation style
+		// Old conversation style
 		|| countElements('.timeline-comment') > 30
 		|| countElements('.participant-avatar') > 10
 	);
 }
 
-const threeMonths = toMilliseconds({days: 90});
-
-export function wasClosedLongAgo(): boolean {
-	if (!pageDetect.isClosedConversation()) {
-		return false;
-	}
-
-	const closingDate = getCloseDate();
-	return timeAgo(closingDate) > threeMonths;
-}
-
-export function getResolvedText(): JSX.Element {
-	const closingDate = getCloseDate();
-	const ago = <strong>{twas(closingDate.getTime())}</strong>;
+export function getResolvedText(closeDate: Date): JSX.Element {
+	const ago = <strong>{twas(closeDate.getTime())}</strong>;
 	const newIssue = <a href={buildRepoURL('issues/new/choose')}>new issue</a>;
 	return (
 		<>
@@ -121,8 +126,9 @@ function initDraft(signal: AbortSignal): void {
 
 function initBanner(signal: AbortSignal): void {
 	observe(newCommentField, async (field: HTMLElement) => {
+		const closeDate = await getCloseDate();
 		// Check inside the observer because React views load after dom-ready
-		if (wasClosedLongAgo()) {
+		if (closeDate && wasClosedLongAgo(closeDate)) {
 			addResolvedBanner(field);
 		} else if (isPopular() && !(await userIsModerator())) {
 			addPopularBanner(field);
@@ -163,7 +169,6 @@ void features.add(import.meta.url, {
 	include: [
 		pageDetect.isConversation,
 	],
-	awaitDomReady: true, // We're specifically looking for the last event
 	init: initBanner,
 }, {
 	include: [
@@ -172,7 +177,6 @@ void features.add(import.meta.url, {
 	exclude: [
 		isOwnConversation,
 	],
-	awaitDomReady: true,
 	init: initDraft,
 }, {
 	include: [
